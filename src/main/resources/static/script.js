@@ -1,21 +1,23 @@
+// ---------- Fix mobile viewport ----------
 function setVh() {
   document.documentElement.style.setProperty(
     "--vh",
     `${window.innerHeight * 0.01}px`
   );
 }
-
 setVh();
 window.addEventListener("resize", setVh);
 
+// ---------- WebSocket connection ----------
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const wsUrl = `${protocol}://${window.location.host}/chat`;
 
-let ws = new WebSocket(
-  `ws://${window.location.hostname}:${window.location.port}/chat`
-);
+const ws = new WebSocket(wsUrl);
 
 const chatBox = document.getElementById("chat");
 
-ws.onmessage = e => {
+// ---------- Receive messages ----------
+ws.onmessage = (e) => {
   const msg = e.data;
   const parts = msg.split(":");
 
@@ -37,7 +39,13 @@ ws.onmessage = e => {
   chatBox.scrollTop = chatBox.scrollHeight;
 };
 
+// ---------- Send message ----------
 function send() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    alert("Connecting to server...");
+    return;
+  }
+
   const user = document.getElementById("user").value || "Guest";
   const msg = document.getElementById("msg").value.trim();
 
@@ -47,7 +55,7 @@ function send() {
   document.getElementById("msg").value = "";
 }
 
-// Send on Enter key
-document.getElementById("msg").addEventListener("keydown", e => {
+// ---------- Send on Enter ----------
+document.getElementById("msg").addEventListener("keydown", (e) => {
   if (e.key === "Enter") send();
 });
