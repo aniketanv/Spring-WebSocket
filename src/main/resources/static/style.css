@@ -1,0 +1,167 @@
+/* ============================= */
+/* Global Reset & Variables      */
+/* ============================= */
+
+:root {
+  --vh: 1vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ============================= */
+/* Chat Container (Base)         */
+/* ============================= */
+
+.chat-container {
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================= */
+/* Desktop / Laptop Layout       */
+/* ============================= */
+
+@media (min-width: 768px) {
+  .chat-container {
+    width: 80vw;
+    max-width: 900px;
+    height: 85vh;
+    border-radius: 18px;
+  }
+}
+
+/* ============================= */
+/* Mobile Layout (NO SCROLL)     */
+/* ============================= */
+
+@media (max-width: 767px) {
+  body {
+    height: calc(var(--vh) * 100);
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .chat-container {
+    width: 100%;
+    height: calc(var(--vh) * 100);
+    border-radius: 0;
+  }
+}
+
+/* ============================= */
+/* Header                        */
+/* ============================= */
+
+header {
+  background: #4f46e5;
+  color: #ffffff;
+  padding: 16px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+/* ============================= */
+/* Chat Area                     */
+/* ============================= */
+
+.chat-box {
+  flex: 1;
+  padding: 14px;
+  overflow-y: auto;
+  background: #f3f4f6;
+}
+
+/* ============================= */
+/* Messages                      */
+/* ============================= */
+
+.message {
+  margin-bottom: 12px;
+}
+
+.user {
+  font-weight: 600;
+  color: #4f46e5;
+  margin-bottom: 4px;
+}
+
+.text {
+  background: #e0e7ff;
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 14px;
+  max-width: 80%;
+  word-wrap: break-word;
+  font-size: 0.95rem;
+}
+
+/* ============================= */
+/* Input Area                    */
+/* ============================= */
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background: #ffffff;
+
+  flex-wrap: nowrap;     /* 🔑 FORCE SINGLE ROW */
+  width: 100%;
+}
+
+
+
+.input-row input {
+  min-width: 0;          /* 🔑 ALLOWS SHRINKING */
+  flex: 1 1 0;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+
+.input-row input:focus {
+  border-color: #4f46e5;
+}
+
+.input-row button {
+  flex: 0 0 56px;        /* 🔑 FIXED WIDTH */
+  height: 44px;          /* MATCH INPUT HEIGHT */
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+
+.input-row button:hover {
+  background: #4338ca;
+}
