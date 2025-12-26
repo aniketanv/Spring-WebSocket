@@ -2,17 +2,17 @@
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# 1. Copy POM and download Java dependencies (caching layer)
+# 1. Copy POM and install dependencies
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
-# 2. Copy Java Source
+# 2. Copy Backend Source
 COPY src ./src
 
-# 3. CRITICAL: Copy Frontend Source so Maven can build it
+# 3. CRITICAL: Copy Frontend Source (You were missing this!)
 COPY frontend ./frontend
 
-# 4. Build everything (Java + React)
+# 4. Build (This runs npm install -> npm build -> packages jar)
 RUN mvn clean package -DskipTests
 
 # ---------- Run stage ----------
