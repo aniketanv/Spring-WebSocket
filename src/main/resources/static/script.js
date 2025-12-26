@@ -3,24 +3,28 @@ const ws = new WebSocket(
   "://" + location.host + "/chat"
 );
 
+// ================= STATE =================
 let socketReady = false;
 let currentRoom = "lobby";
 
-// ===== LOBBY TIMER STATE =====
-let lobbyResetAt = null;
-let lobbyInterval = null;
-
-// ===== DOM =====
+// ================= DOM =================
 const loginDiv = document.getElementById("login");
 const chatUI = document.getElementById("chatUI");
 const loginUser = document.getElementById("loginUser");
 const loginError = document.getElementById("loginError");
+
 const chat = document.getElementById("chat");
 const room = document.getElementById("room");
 const timer = document.getElementById("timer");
 const msgInput = document.getElementById("msg");
 
-// ===== ENTER HANDLERS =====
+// ================= BOOTSTRAP MODAL SETUP =================
+// We need to control the modal via JS code
+const roomModalElement = document.getElementById("roomModal");
+const roomModal = new bootstrap.Modal(roomModalElement);
+const roomInput = document.getElementById("roomNameInput");
+
+// ================= ENTER HANDLERS =================
 loginUser.addEventListener("keydown", e => {
   if (e.key === "Enter") login();
 });
@@ -29,10 +33,13 @@ msgInput.addEventListener("keydown", e => {
   if (e.key === "Enter") send();
 });
 
-// ===== SOCKET OPEN =====
+roomInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") confirmCreateRoom();
+});
+
+// ================= SOCKET OPEN =================
 ws.onopen = () => {
   socketReady = true;
-
   const saved = localStorage.getItem("chatUser");
   if (saved) {
     loginUser.value = saved;
@@ -40,65 +47,74 @@ ws.onopen = () => {
   }
 };
 
-// ===== LOGIN =====
+// ================= LOGIN =================
 function login() {
   if (!socketReady) {
     loginError.textContent = "Connecting…";
     return;
   }
 
-  const u = loginUser.value.trim();
-  if (!u) return;
+  const user = loginUser.value.trim();
+  if (!user) return;
 
-  ws.send("__login__" + u);
+  ws.send("__login__" + user);
 }
 
-// ===== ROOM SWITCH =====
+// ================= ROOM SWITCH =================
 room.addEventListener("change", () => {
   if (room.value === "__add__") {
-    room.value = currentRoom;
+    // Reset selection back to current room until new one is created
+    room.value = currentRoom; 
     openRoomPopup();
     return;
   }
 
+  // 🔑 clear UI ONLY locally
+  chat.innerHTML = "";
+
   currentRoom = room.value;
   ws.send("__switch__" + currentRoom);
 
-  // 🔑 timer only visible in lobby
+  // Show timer only in lobby
   timer.style.display = currentRoom === "lobby" ? "inline" : "none";
 });
 
-
-// ===== SEND MESSAGE =====
+// ================= SEND MESSAGE =================
 function send() {
-  const m = msgInput.value.trim();
-  if (!m) return;
-  ws.send(m);
+  const msg = msgInput.value.trim();
+  if (!msg) return;
+
+  ws.send(msg);
   msgInput.value = "";
 }
 
-// ===== SOCKET MESSAGES =====
+// ================= SOCKET MESSAGES =================
 ws.onmessage = e => {
   const d = e.data;
 
-  // ===== LOGIN OK =====
+  // ---------- LOGIN OK ----------
   if (d === "__login_ok__") {
     localStorage.setItem("chatUser", loginUser.value.trim());
-    loginDiv.classList.add("hidden");
-    chatUI.classList.remove("hidden");
+
+    // FIX: Use 'd-none' for Bootstrap 5 visibility
+    loginDiv.classList.add("d-none");
+    chatUI.classList.remove("d-none");
+
+    timer.style.display = "inline";
     ws.send("__join__lobby");
     return;
   }
 
-  // ===== ROOM LIST =====
+  // ---------- ROOM LIST ----------
   if (d.startsWith("__rooms__")) {
-    room.innerHTML = "";
+    const rooms = d.replace("__rooms__", "").split(",");
 
-    d.replace("__rooms__", "").split(",").forEach(r => {
-      const o = document.createElement("option");
-      o.value = r;
-      o.textContent = r;
-      room.appendChild(o);
+    room.innerHTML = "";
+    rooms.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r;
+      opt.textContent = r;
+      room.appendChild(opt);
     });
 
     const add = document.createElement("option");
@@ -110,22 +126,17 @@ ws.onmessage = e => {
     return;
   }
 
-  // ===== LOBBY TICK (🔥 MUST BE EARLY) =====
+  // ---------- LOBBY TIMER ----------
   if (d.startsWith("__lobby_tick__")) {
     if (currentRoom !== "lobby") return;
 
-    const seconds = parseInt(d.replace("__lobby_tick__", ""), 10);
-    timer.textContent =
-      "Reset in " +
-      String(Math.floor(seconds / 60)).padStart(2, "0") +
-      ":" +
-      String(seconds % 60).padStart(2, "0");
-
+    const sec = parseInt(d.replace("__lobby_tick__", ""), 10);
+    timer.textContent = format(sec);
     timer.style.display = "inline";
     return;
   }
 
-  // ===== LOBBY RESET =====
+  // ---------- LOBBY RESET ----------
   if (d === "__lobby_reset__") {
     if (currentRoom === "lobby") {
       chat.innerHTML = "";
@@ -133,37 +144,14 @@ ws.onmessage = e => {
     return;
   }
 
-  // ===== ROOM SWITCH CLEAR =====
-  if (d === "__clear__") {
-  // clear ONLY for non-lobby rooms
-  if (currentRoom !== "lobby") {
-    chat.innerHTML = "";
-  }
-  return;
-}
-
-
-  // ===== NORMAL CHAT MESSAGE =====
+  // ---------- NORMAL MESSAGE ----------
   const div = document.createElement("div");
   div.textContent = d;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 };
 
-
-// ===== LOBBY TIMER UPDATE (ALWAYS TICKS) =====
-function updateLobbyTimer() {
-  if (!lobbyResetAt) return;
-
-  const seconds = Math.max(
-    0,
-    Math.floor((lobbyResetAt - Date.now()) / 1000)
-  );
-
-  timer.textContent = format(seconds);
-}
-
-// ===== FORMAT =====
+// ================= TIMER FORMAT =================
 function format(s) {
   return (
     "Reset in " +
@@ -173,48 +161,41 @@ function format(s) {
   );
 }
 
-// ===== ROOM MODAL =====
-const modal = document.getElementById("roomModal");
-const roomInput = document.getElementById("roomNameInput");
-
-roomInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") confirmCreateRoom();
-});
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-    closeRoomPopup();
-  }
-});
-
+// ================= ROOM MODAL =================
 function openRoomPopup() {
-  modal.classList.remove("hidden");
   roomInput.value = "";
-  roomInput.focus();
+  roomModal.show(); // FIX: Use Bootstrap API
+  
+  // Wait for modal to animate in before focusing
+  setTimeout(() => roomInput.focus(), 500);
 }
 
 function closeRoomPopup() {
-  modal.classList.add("hidden");
+  roomModal.hide(); // FIX: Use Bootstrap API
 }
 
 function confirmCreateRoom() {
-  const n = roomInput.value.trim();
-  if (!n) return;
+  const name = roomInput.value.trim();
+  if (!name || name === "lobby") return;
 
-  ws.send("__create__" + n);
+  ws.send("__create__" + name);
 
+  // Optimistically add to list (server will confirm via broadcast)
   const opt = document.createElement("option");
-  opt.value = n;
-  opt.textContent = n;
+  opt.value = name;
+  opt.textContent = name;
+  // Insert before the "Add room" button
   room.insertBefore(opt, room.lastElementChild);
 
-  room.value = n;
-  currentRoom = n;
-  ws.send("__switch__" + n);
+  chat.innerHTML = "";
+  currentRoom = name;
+  room.value = name;
+
+  ws.send("__switch__" + name);
   closeRoomPopup();
 }
 
-// ===== LOGOUT =====
+// ================= LOGOUT =================
 function logout() {
   localStorage.removeItem("chatUser");
   location.reload();

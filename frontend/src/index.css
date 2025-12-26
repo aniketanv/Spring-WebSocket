@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+body, #root {
+  height: 100vh;
+  /* A smoother, more modern gradient */
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Nice scrollbars for chat area */
+.scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+}
+
+.scrollbar-track-rounded::-webkit-scrollbar-track {
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: rgba(243, 244, 246, 0.5); 
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5); 
+    border-radius: 9999px;
+}
