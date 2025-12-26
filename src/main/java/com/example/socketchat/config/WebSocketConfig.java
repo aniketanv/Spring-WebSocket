@@ -1,4 +1,3 @@
-
 package com.example.socketchat.config;
 
 import com.example.socketchat.ws.ChatHandler;

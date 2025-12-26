@@ -1,25 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Socket Chat</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Chat</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="chat-container">
-    <header>💬 Socket Chat</header>
+<div class="app">
+
+  <div id="login" class="login-card">
+    <h2>💬 Welcome</h2>
+    <input id="loginUser" placeholder="Username">
+    <button onclick="login()">Enter</button>
+    <span id="loginError"></span>
+  </div>
+
+  <div id="chatUI" class="chat-container hidden">
+    <header class="chat-header">
+      <span>💬 Chat</span>
+      <div class="header-right">
+        <span id="timer"></span>
+        <button id="logoutBtn" onclick="logout()">Logout</button>
+      </div>
+    </header>
 
     <div id="chat" class="chat-box"></div>
 
-    <div class="input-row">
-      <input id="user" placeholder="Username" />
-      <input id="msg" placeholder="Type a message…" />
+    <div class="bottom-bar">
+      <select id="room">
+        <option value="lobby">Lobby</option>
+        <option value="__add__">➕ Add room</option>
+      </select>
+
+      <input id="msg" placeholder="Message">
       <button onclick="send()">➤</button>
     </div>
   </div>
+</div>
 
-  <script src="script.js"></script>
+<div id="roomModal" class="modal hidden">
+  <div class="modal-card">
+    <h3>Create Room</h3>
+    <input id="roomNameInput" placeholder="Room name">
+    <div class="modal-actions">
+      <button onclick="confirmCreateRoom()">Create</button>
+      <button onclick="closeRoomPopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
